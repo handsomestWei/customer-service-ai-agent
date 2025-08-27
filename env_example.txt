@@ -1,0 +1,39 @@
+# 多智能体客服系统环境变量配置示例
+# 复制此文件为 .env 并根据需要修改
+
+# ===== 硅基流动API配置 =====
+OPENAI_API_KEY=your_siliconflow_api_key_here
+OPENAI_BASE_URL=https://api.siliconflow.cn/v1
+OPENAI_MODEL=Qwen/Qwen3-8B
+
+# ===== HTTP请求配置 =====
+HTTP_TIMEOUT=30
+HTTP_MAX_RETRIES=3
+
+# ===== 日志配置 =====
+LOG_LEVEL=INFO
+
+# ===== Flask Web应用配置 =====
+FLASK_PORT=5000
+FLASK_DEBUG=False
+FLASK_SECRET_KEY=your-secret-key-here
+
+# ===== 配置说明 =====
+
+# 1. 获取API密钥:
+# 访问 https://api.siliconflow.cn 注册账号并获取API密钥
+
+# 2. 选择模型:
+# 可用的模型包括：
+# - Qwen/QwQ-32B (推荐，性能强大)
+# - Qwen/Qwen3-8B (性价比高)
+# - Qwen/Qwen3-14B (性能更好)
+# - Qwen/Qwen3-32B (最高性能)
+# - Qwen/Qwen2.5-7B (轻量级)
+# - Qwen/Qwen2.5-14B (平衡型)
+
+# 3. 自定义配置:
+# 如需调整超时时间或重试次数，可以修改以下参数：
+# HTTP_TIMEOUT=60
+# HTTP_MAX_RETRIES=5
+

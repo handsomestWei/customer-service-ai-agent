@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多智能体客服系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            height: 600px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .session-controls {
+            margin-bottom: 20px;
+        }
+
+        .session-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.2s;
+        }
+
+        .session-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .session-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .session-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .session-item:hover {
+            background: #e3f2fd;
+        }
+
+        .session-item.active {
+            background: #2196f3;
+            color: white;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-meta {
+            font-size: 0.8em;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: #4facfe;
+        }
+
+        .send-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .typing-dots {
+            display: inline-block;
+        }
+
+        .typing-dots::after {
+            content: '';
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+
+            0%,
+            20% {
+                content: '';
+            }
+
+            40% {
+                content: '.';
+            }
+
+            60% {
+                content: '..';
+            }
+
+            80%,
+            100% {
+                content: '...';
+            }
+        }
+
+        .agent-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #1976d2;
+        }
+
+        .session-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #856404;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 多智能体客服系统</h1>
+            <p>基于 LangGraph API 的智能客服系统</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="session-controls">
+                    <button class="session-btn" onclick="createNewSession()">🆕 新建对话</button>
+                    <button class="session-btn" onclick="refreshSessionList()">🔄 刷新列表</button>
+                    <button class="session-btn" onclick="testLangGraphAPI()"
+                        style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">🧪 测试API</button>
+                </div>
+                <div class="session-list" id="sessionList">
+                    <!-- 会话列表将在这里动态生成 -->
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-container" id="chatContainer">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            <div>您好！我是您的智能客服助手，很高兴为您服务。</div>
+                            <div class="message-meta">系统消息</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    <span class="typing-dots">智能体正在思考中</span>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-group">
+                        <input type="text" class="message-input" id="messageInput" placeholder="请输入您的问题..."
+                            maxlength="500">
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let isTyping = false;
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', function () {
+            document.getElementById('messageInput').focus();
+            refreshSessionList();
+            createNewSession();
+        });
+
+        // 创建新会话
+        function createNewSession() {
+            currentSessionId = 'web_' + Date.now();
+            clearChatContainer();
+            addSystemMessage('新对话已创建，开始聊天吧！');
+            refreshSessionList();
+        }
+
+        // 刷新会话列表
+        async function refreshSessionList() {
+            try {
+                const response = await fetch('/api/sessions');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('获取会话列表失败:', data.error);
+                    // 显示错误信息但不中断页面功能
+                    return;
+                }
+
+                if (data.sessions) {
+                    displaySessionList(data.sessions);
+                }
+            } catch (error) {
+                console.error('获取会话列表失败:', error);
+                // 显示友好的错误信息
+                const sessionList = document.getElementById('sessionList');
+                sessionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">暂无会话数据</div>';
+            }
+        }
+
+        // 显示会话列表
+        function displaySessionList(sessions) {
+            const sessionList = document.getElementById('sessionList');
+            sessionList.innerHTML = '';
+
+            sessions.forEach(session => {
+                const sessionItem = document.createElement('div');
+                sessionItem.className = 'session-item';
+                if (session.session_id === currentSessionId) {
+                    sessionItem.classList.add('active');
+                }
+
+                sessionItem.innerHTML = `
+                    <div><strong>会话 ${session.session_id.slice(-8)}</strong></div>
+                    <div style="font-size: 0.8em; opacity: 0.7;">
+                        消息: ${session.message_count || 0} |
+                        创建: ${new Date((session.created_at || Date.now() / 1000) * 1000).toLocaleString()}
+                    </div>
+                `;
+
+                sessionItem.onclick = () => loadSession(session.session_id);
+                sessionList.appendChild(sessionItem);
+            });
+        }
+
+        // 加载会话
+        async function loadSession(sessionId) {
+            currentSessionId = sessionId;
+
+            try {
+                const response = await fetch(`/api/sessions/${sessionId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('加载会话失败:', data.error);
+                    addSystemMessage('加载会话失败: ' + data.error);
+                    return;
+                }
+
+                if (data.session) {
+                    clearChatContainer();
+                    displaySessionHistory(data.session);
+                    refreshSessionList();
+                } else {
+                    addSystemMessage('会话数据格式错误');
+                }
+            } catch (error) {
+                console.error('加载会话失败:', error);
+                addSystemMessage('加载会话失败: ' + error.message);
+            }
+        }
+
+        // 显示会话历史
+        function displaySessionHistory(sessionData) {
+            if (sessionData.conversation_history) {
+                sessionData.conversation_history.forEach(msg => {
+                    addMessage(msg.is_user ? 'user' : 'assistant', msg.content);
+                });
+            }
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || isTyping || !currentSessionId) return;
+
+            // 添加用户消息到界面
+            addMessage('user', message);
+            input.value = '';
+
+            // 显示输入指示器
+            showTypingIndicator();
+            isTyping = true;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: currentSessionId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    addMessage('assistant', '抱歉，系统出现错误：' + data.error);
+                    console.error('聊天API错误:', data.error);
+                } else if (data.response) {
+                    // 添加智能体信息（如果后端返回了这些信息）
+                    if (data.agent || data.query_type) {
+                        const agentInfo = document.createElement('div');
+                        agentInfo.className = 'agent-info';
+                        agentInfo.innerHTML = `🤖 ${data.agent || '智能客服'} | 📋 ${data.query_type || '已处理'}`;
+
+                        const lastMessage = document.querySelector('.message.assistant:last-child .message-content');
+                        if (lastMessage) {
+                            lastMessage.insertBefore(agentInfo, lastMessage.firstChild);
+                        }
+                    }
+
+                    addMessage('assistant', data.response);
+                } else {
+                    addMessage('assistant', '抱歉，系统返回了空响应，请稍后重试。');
+                    console.warn('聊天API返回空响应:', data);
+                }
+
+                // 刷新会话列表
+                refreshSessionList();
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                addMessage('assistant', '抱歉，网络连接出现问题，请稍后重试。错误详情：' + error.message);
+            } finally {
+                hideTypingIndicator();
+                isTyping = false;
+            }
+        }
+
+        // 添加消息到界面
+        function addMessage(role, content) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'message-meta';
+            metaDiv.textContent = role === 'user' ? '您' : '智能客服';
+
+            contentDiv.appendChild(metaDiv);
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 添加系统消息
+        function addSystemMessage(content) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'message-meta';
+            metaDiv.textContent = '系统消息';
+
+            contentDiv.appendChild(metaDiv);
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 清空聊天容器
+        function clearChatContainer() {
+            document.getElementById('chatContainer').innerHTML = '';
+        }
+
+        // 显示输入指示器
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+        }
+
+        // 隐藏输入指示器
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        // 回车发送
+        document.getElementById('messageInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 测试 LangGraph API 连接
+        async function testLangGraphAPI() {
+            try {
+                console.log('🧪 开始测试 LangGraph API...');
+
+                const response = await fetch('/api/test');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('🧪 API 测试结果:', data);
+
+                if (data.error) {
+                    addSystemMessage('❌ API 测试失败: ' + data.error);
+                } else {
+                    const status = [];
+                    if (data.health_check === 200) status.push('✅ 健康检查');
+                    else status.push('❌ 健康检查');
+
+                    if (data.threads_search === 200) status.push('✅ 线程搜索');
+                    else status.push('❌ 线程搜索');
+
+                    if (data.assistants_search === 200) status.push('✅ 助手搜索');
+                    else status.push('❌ 助手搜索');
+
+                    addSystemMessage(`🧪 API 测试完成: ${status.join(' | ')}`);
+                }
+            } catch (error) {
+                console.error('🧪 API 测试失败:', error);
+                addSystemMessage('❌ API 测试失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>
