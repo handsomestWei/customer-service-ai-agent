@@ -43,11 +43,8 @@ class ComplaintAgent(BaseAgent):
         customer_query = state["customer_query"]
         session_id = state.get("session_id", "default")
 
-        # 添加用户消息到会话历史
-        self._add_message_to_session(session_id, customer_query, is_user=True)
-
-        # 从会话管理器获取对话历史上下文
-        conversation_context = self._get_conversation_context(session_id)
+        # 对话轮次由 classify / 外层节点写入 persisted_dialogue
+        conversation_context = self._get_conversation_context(session_id, state)
 
         # 从投诉数据库中匹配相关信息
         matched_info = self._match_complaint_info(customer_query)
@@ -98,10 +95,6 @@ class ComplaintAgent(BaseAgent):
             print(f"投诉专家调用LLM时出错: {e}")
             response_content = "抱歉，处理您的投诉时遇到系统错误，请稍后重试。"
 
-        # 添加AI回复到会话历史
-        self._add_message_to_session(session_id, response_content, is_user=False)
-
-        # 更新状态
         state["response"] = response_content
         state["current_agent"] = self.name
         state["tools_used"].append(f"{self.name}_processing")

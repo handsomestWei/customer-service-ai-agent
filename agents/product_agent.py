@@ -57,11 +57,10 @@ class ProductAgent(BaseAgent):
         customer_query = state["customer_query"]
         session_id = state.get("session_id", "default")
 
-        # 添加用户消息到会话历史
-        self._add_message_to_session(session_id, customer_query, is_user=True)
+        # 对话轮次由 classify / agent 外层节点写入 persisted_dialogue，此处只读 state
 
-        # 从会话管理器获取对话历史上下文
-        conversation_context = self._get_conversation_context(session_id)
+        # 获取对话历史上下文（优先 state.persisted_dialogue）
+        conversation_context = self._get_conversation_context(session_id, state)
 
         # 从产品数据库中匹配相关信息
         matched_products = self._match_products(customer_query)
@@ -111,9 +110,6 @@ class ProductAgent(BaseAgent):
         except Exception as e:
             print(f"产品专家调用LLM时出错: {e}")
             response_content = "抱歉，处理您的产品查询时遇到技术问题，请稍后重试。"
-
-        # 添加AI回复到会话历史
-        self._add_message_to_session(session_id, response_content, is_user=False)
 
         # 更新状态
         state["response"] = response_content

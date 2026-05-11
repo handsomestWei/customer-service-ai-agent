@@ -3,9 +3,10 @@
 所有专门智能体的基类
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from abc import ABC, abstractmethod
 from session_manager import LangChainSessionManager
+
 
 class BaseAgent(ABC):
     def __init__(self, name: str, role: str, expertise: List[str], session_manager: LangChainSessionManager = None):
@@ -28,10 +29,25 @@ class BaseAgent(ABC):
         """处理客户查询的抽象方法"""
         pass
 
-    def _get_conversation_context(self, session_id: str, max_messages: int = 6) -> str:
-        """从会话管理器获取对话历史上下文"""
+    def _get_conversation_context(
+        self,
+        session_id: str,
+        state: Optional[Dict[str, Any]] = None,
+        max_messages: int = 12,
+    ) -> str:
+        """优先使用图状态中持久化的对话（跨 LangGraph 进程/工作有效），否则回退到 session_manager。"""
+        if state is not None:
+            records = state.get("persisted_dialogue")
+            if records:
+                tail = records[-max_messages:]
+                context_lines = []
+                for msg in tail:
+                    role = "用户" if msg.get("is_user", True) else "AI"
+                    content = msg.get("content", "")
+                    timestamp = msg.get("timestamp", "")
+                    context_lines.append(f"[{timestamp}] {role}: {content}")
+                return "\n".join(context_lines)
         try:
-            # 使用会话管理器获取对话上下文
             conversation_context = self.session_manager.get_conversation_context(session_id, max_messages)
 
             if not conversation_context:

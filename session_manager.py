@@ -1,18 +1,16 @@
 """
 会话管理器
-使用 LangChain 标准的 Memory 接口实现会话管理
+使用 LangChain Core 的 BaseChatMessageHistory 实现会话与会话存储
 支持多种存储后端和统一的 API 接口
 """
 
 import os
 import time
 import uuid
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
-# LangChain Memory 相关导入
-from langchain_core.memory import BaseMemory
-from langchain.memory import ConversationBufferMemory
+from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
 # 存储后端导入
@@ -25,7 +23,7 @@ from langchain_community.chat_message_histories import (
 
 class LangChainSessionManager:
     """
-    基于 LangChain Memory 的会话管理器
+    基于 LangChain Core BaseChatMessageHistory 的会话管理器
     提供统一的会话管理接口，支持多种存储后端
     """
 
@@ -62,75 +60,45 @@ class LangChainSessionManager:
                 self.storage_config["storage_dir"] = "./chat_sessions"
                 os.makedirs(self.storage_config["storage_dir"], exist_ok=True)
 
-    def _create_memory_backend(self, session_id: str) -> ConversationBufferMemory:
+    def _create_chat_history(self, session_id: str) -> BaseChatMessageHistory:
         """
-        根据存储后端创建 Memory 实例
+        根据存储后端创建对话历史（LangChain Core BaseChatMessageHistory）
 
         Args:
             session_id: 会话ID
 
         Returns:
-            ConversationBufferMemory 实例
+            BaseChatMessageHistory 实例
         """
         if self.storage_backend == "memory":
-            # 内存存储（默认）
-            return ConversationBufferMemory(
-                memory_key="conversation_history",
-                return_messages=True,
-                output_key="response"
-            )
+            return InMemoryChatMessageHistory()
 
-        elif self.storage_backend == "redis":
-            # Redis 存储
-            history = RedisChatMessageHistory(
+        if self.storage_backend == "redis":
+            return RedisChatMessageHistory(
                 session_id=session_id,
-                url=self.storage_config["url"]
-            )
-            return ConversationBufferMemory(
-                chat_memory=history,
-                return_messages=True,
-                output_key="response"
+                url=self.storage_config["url"],
             )
 
-        elif self.storage_backend == "mongodb":
-            # MongoDB 存储
-            history = MongoDBChatMessageHistory(
+        if self.storage_backend == "mongodb":
+            return MongoDBChatMessageHistory(
                 session_id=session_id,
-                connection_string=self.storage_config["connection_string"]
-            )
-            return ConversationBufferMemory(
-                chat_memory=history,
-                return_messages=True,
-                output_key="response"
+                connection_string=self.storage_config["connection_string"],
             )
 
-        elif self.storage_backend == "postgres":
-            # PostgreSQL 存储
-            history = PostgresChatMessageHistory(
+        if self.storage_backend == "postgres":
+            return PostgresChatMessageHistory(
                 session_id=session_id,
-                connection_string=self.storage_config["connection_string"]
-            )
-            return ConversationBufferMemory(
-                chat_memory=history,
-                return_messages=True,
-                output_key="response"
+                connection_string=self.storage_config["connection_string"],
             )
 
-        elif self.storage_backend == "file":
-            # 文件存储
+        if self.storage_backend == "file":
             file_path = os.path.join(
                 self.storage_config["storage_dir"],
-                f"{session_id}.json"
+                f"{session_id}.json",
             )
-            history = FileChatMessageHistory(file_path)
-            return ConversationBufferMemory(
-                chat_memory=history,
-                return_messages=True,
-                output_key="response"
-            )
+            return FileChatMessageHistory(file_path)
 
-        else:
-            raise ValueError(f"不支持的存储后端: {self.storage_backend}")
+        raise ValueError(f"不支持的存储后端: {self.storage_backend}")
 
     def create_session(self, session_id: str = None) -> str:
         """
@@ -145,12 +113,11 @@ class LangChainSessionManager:
         if session_id is None:
             session_id = str(uuid.uuid4())
 
-        # 创建 Memory 后端
-        memory = self._create_memory_backend(session_id)
+        chat_history = self._create_chat_history(session_id)
 
         # 记录会话元数据
         self.sessions[session_id] = {
-            "memory": memory,
+            "memory": chat_history,
             "created_at": time.time(),
             "last_activity": time.time(),
             "message_count": 0,
@@ -181,15 +148,15 @@ class LangChainSessionManager:
 
         return session
 
-    def get_memory(self, session_id: str) -> ConversationBufferMemory:
+    def get_memory(self, session_id: str) -> BaseChatMessageHistory:
         """
-        获取会话的 Memory 实例
+        获取会话的对话历史实例
 
         Args:
             session_id: 会话ID
 
         Returns:
-            ConversationBufferMemory 实例
+            BaseChatMessageHistory 实例
         """
         session = self.get_session(session_id)
 
@@ -216,11 +183,10 @@ class LangChainSessionManager:
 
         memory = session["memory"]
 
-        # 使用 LangChain 标准接口添加消息
         if is_user:
-            memory.chat_memory.add_user_message(message)
+            memory.add_user_message(message)
         else:
-            memory.chat_memory.add_ai_message(message)
+            memory.add_ai_message(message)
 
         # 更新统计信息
         session["message_count"] += 1
@@ -239,7 +205,7 @@ class LangChainSessionManager:
             LangChain 消息列表
         """
         memory = self.get_memory(session_id)
-        return memory.chat_memory.messages
+        return memory.messages
 
     def get_conversation_context(self, session_id: str, max_messages: int = 10) -> List[Dict[str, Any]]:
         """
@@ -289,7 +255,7 @@ class LangChainSessionManager:
 
         return {
             "session_id": session_id,
-            "message_count": len(memory.chat_memory.messages),
+            "message_count": len(memory.messages),
             "created_at": session["created_at"],
             "last_activity": session["last_activity"],
             "storage_backend": session["storage_backend"],
@@ -420,7 +386,7 @@ class LangChainSessionManager:
                     "type": msg.__class__.__name__,
                     "timestamp": datetime.now().isoformat()
                 }
-                for msg in memory.chat_memory.messages
+                for msg in memory.messages
             ]
         }
 
