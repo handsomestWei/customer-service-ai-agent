@@ -570,14 +570,15 @@
                 if (data.error) {
                     addSystemMessage('❌ API 测试失败: ' + data.error);
                 } else {
+                    const ok = (code) => typeof code === 'number' && code >= 200 && code < 300;
                     const status = [];
-                    if (data.health_check === 200) status.push('✅ 健康检查');
+                    if (ok(data.health_check)) status.push('✅ 健康检查');
                     else status.push('❌ 健康检查');
 
-                    if (data.threads_search === 200) status.push('✅ 线程搜索');
+                    if (ok(data.threads_search)) status.push('✅ 线程搜索');
                     else status.push('❌ 线程搜索');
 
-                    if (data.assistants_search === 200) status.push('✅ 助手搜索');
+                    if (ok(data.assistants_search)) status.push('✅ 助手搜索');
                     else status.push('❌ 助手搜索');
 
                     addSystemMessage(`🧪 API 测试完成: ${status.join(' | ')}`);

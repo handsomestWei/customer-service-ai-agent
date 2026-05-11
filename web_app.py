@@ -635,17 +635,32 @@ def health_check():
 def test_langgraph():
     """测试 LangGraph API 调用"""
     try:
+        # LangGraph 服务存活检查（见 README_LangGraph_CLI：GET /ok）
+        health_check_status = 0
+        try:
+            ok_response = requests.get(f"{LANGGRAPH_API_URL}/ok", timeout=5)
+            health_check_status = ok_response.status_code
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ LangGraph GET /ok 失败: {e}")
+
         # 测试线程搜索
         threads_response = requests.post(f"{LANGGRAPH_API_URL}/threads/search", json={}, timeout=10)
 
         # 测试助手搜索
         assistants_response = requests.post(f"{LANGGRAPH_API_URL}/assistants/search", json={}, timeout=10)
 
+        # 部分版本 /ok 可能不存在或非 2xx，但 API 实际可用：用 threads 结果兜底
+        if not (200 <= health_check_status < 300) and (200 <= threads_response.status_code < 300):
+            print("⚠️ LangGraph GET /ok 未成功，但 threads/search 正常，健康检查标记为通过")
+            health_check_status = 200
+
         return jsonify({
             'status': 'test_completed',
+            'health_check': health_check_status,
             'threads_search': threads_response.status_code,
             'assistants_search': assistants_response.status_code,
             'details': {
+                'ok_response': 'OK' if 200 <= health_check_status < 300 else (health_check_status or 'unreachable'),
                 'threads_response': threads_response.text if threads_response.status_code != 200 else 'OK',
                 'assistants_response': assistants_response.text if assistants_response.status_code != 200 else 'OK'
             }

@@ -9,12 +9,13 @@ import os
 import json
 import requests
 import time
-from typing import Dict, List, Any, TypedDict, Annotated
+from typing import Dict, List, Any, Optional, TypedDict, Annotated
+from datetime import datetime
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from langchain_core.memory import BaseMemory
-from langgraph.graph import StateGraph, END
-from langgraph.prebuilt import ToolNode
+from langchain_core.chat_history import BaseChatMessageHistory
+from langgraph.graph import StateGraph
+from langgraph.config import get_config
 from langchain_core.tools import tool
 from pydantic import BaseModel
 
@@ -45,7 +46,9 @@ class AgentState(TypedDict):
     tools_used: List[str]
     next_agent: str
     conversation_history: List[Any]
-    memory: BaseMemory
+    memory: Optional[BaseChatMessageHistory]
+    # 由图 checkpointer 持久化，跨 LangGraph 工作进程仍可续聊（内存 session_manager 无法做到）
+    persisted_dialogue: List[Any]
 
 # OpenAI兼容API客户端类
 class OpenAICompatibleClient:
@@ -210,8 +213,16 @@ def initialize_agents():
 # 定义查询分类节点
 def classify_query_node(state: AgentState) -> AgentState:
     """Classify customer query"""
+    try:
+        cfg = get_config()
+        tid = (cfg.get("configurable") or {}).get("thread_id")
+        if tid:
+            state["session_id"] = str(tid)
+    except RuntimeError:
+        pass
+
     # 初始化状态对象
-    if "session_id" not in state:
+    if "session_id" not in state or not state.get("session_id"):
         import uuid
         state["session_id"] = str(uuid.uuid4())
 
@@ -220,6 +231,9 @@ def classify_query_node(state: AgentState) -> AgentState:
 
     if "conversation_history" not in state:
         state["conversation_history"] = []
+
+    if "persisted_dialogue" not in state or state.get("persisted_dialogue") is None:
+        state["persisted_dialogue"] = []
 
     if "memory" not in state:
         state["memory"] = None
@@ -258,7 +272,16 @@ def classify_query_node(state: AgentState) -> AgentState:
     state["query_type"] = query_type
     state["tools_used"].append("query_classification")
 
-    # 添加用户消息到会话历史
+    # 写入由 checkpointer 持久化的对话（用户轮次）
+    pd = list(state.get("persisted_dialogue") or [])
+    pd.append({
+        "content": str(customer_query),
+        "is_user": True,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    })
+    state["persisted_dialogue"] = pd
+
+    # 同步到内存 session_manager（仅同进程有效；可选）
     try:
         session_manager.add_message(session_id, str(customer_query), is_user=True)
     except Exception as e:
@@ -275,10 +298,7 @@ def create_agent_node(agent_name: str):
         if agent:
             # 获取会话上下文
             session_id = state["session_id"]
-            conversation_context = session_manager.get_conversation_context(session_id)
-
-            # 将对话上下文添加到状态中
-            state["conversation_history"] = conversation_context
+            state["conversation_history"] = list(state.get("persisted_dialogue") or [])
 
             # 处理查询
             result = agent.process(state)
@@ -291,7 +311,16 @@ def create_agent_node(agent_name: str):
                 print(f"Agent {agent_name} result missing 'response' field: {result}")
                 result["response"] = "Error: No response from agent"
 
-            # 添加AI回复到会话历史
+            # 助手轮次写入 checkpointer 状态
+            pd = list(result.get("persisted_dialogue") or [])
+            pd.append({
+                "content": str(result["response"]),
+                "is_user": False,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            })
+            result["persisted_dialogue"] = pd
+
+            # 同步到内存 session_manager（仅同进程有效；可选）
             try:
                 session_manager.add_message(session_id, str(result["response"]), is_user=False)
             except Exception as e:
@@ -308,25 +337,8 @@ def final_response_node(state: AgentState) -> AgentState:
     """Generate final response"""
     current_agent = state["current_agent"]
     response = state["response"]
-    session_id = state["session_id"]
 
-    # 获取会话上下文
-    conversation_context = session_manager.get_conversation_context(session_id)
-
-    # 构建包含上下文的回复
-    context_summary = ""
-    if len(conversation_context) > 1:
-        context_summary = f"\n📝 Conversation History: This session has {len(conversation_context)} rounds"
-
-    final_message = f"""
-    【{current_agent}'s Response】
-    {response}
-    {context_summary}
-
-    If you have any other questions, please feel free to ask!
-    """
-
-    state["response"] = final_message
+    state["response"] = f"【{current_agent}'s Response】\n{response}"
     return state
 
 # 图表入口点

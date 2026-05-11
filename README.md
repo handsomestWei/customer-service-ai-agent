@@ -66,12 +66,12 @@ pip install -r requirements.txt
 pip install langgraph-cli
 pip install -U "langgraph-cli[inmem]"
 ```
-在win环境中，langgraph-cli下载后，需要将`langgraph.exe`路径加入PATH环境变量。或者使用时直接带全路径，例`C:\Users\<yourName>\AppData\Roaming\Python\Python313\Scripts\langgraph.exe`
+在win环境中，langgraph-cli下载后，需要将`langgraph.exe`路径加入PATH环境变量。或者使用时直接带全路径，例`<your site-packages>\bin\langgraph.exe`
 
 ### 2. 环境变量配置
 复制 `env_example.txt` 为 `.env` 文件并配置。
 
-### 3. 运行系统
+### 3. 图结构自检
 ```bash
 python multi_agent_customer_service.py
 ```
