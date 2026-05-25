@@ -35,6 +35,12 @@ from tools import classify_query
 # 导入会话管理器
 from session_manager import LangChainSessionManager, default_session_manager
 
+# 超出客服范围时的固定回复（护栏：不调用业务智能体）
+OUT_OF_SCOPE_REPLY = (
+    "抱歉，这里是智能客服，仅处理与产品、技术、账单、投诉及相关售后政策类问题；"
+    "请用一句话说明您的具体业务诉求，我很乐意协助。"
+)
+
 # 定义状态类型
 class AgentState(TypedDict):
     session_id: str
@@ -287,6 +293,24 @@ def classify_query_node(state: AgentState) -> AgentState:
     except Exception as e:
         print(f"Error adding user message to session: {e}")
 
+    # 护栏：超出范围直接固定回复，不进入业务智能体
+    if state["query_type"] == "out_of_scope":
+        state["response"] = OUT_OF_SCOPE_REPLY
+        state["current_agent"] = "智能客服"
+        pd_oos = list(state.get("persisted_dialogue") or [])
+        pd_oos.append({
+            "content": OUT_OF_SCOPE_REPLY,
+            "is_user": False,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        state["persisted_dialogue"] = pd_oos
+        try:
+            session_manager.add_message(session_id, OUT_OF_SCOPE_REPLY, is_user=False)
+        except Exception as e:
+            print(f"Error adding out_of_scope refusal to session: {e}")
+        state["tools_used"].append("out_of_scope_refusal")
+        return state
+
     return state
 
 # 定义智能体处理节点
@@ -373,7 +397,8 @@ def make_graph():
             "technical_support": "tech_agent",
             "billing": "billing_agent",
             "complaint": "complaint_agent",
-            "general_inquiry": "general_agent"
+            "general_inquiry": "general_agent",
+            "out_of_scope": "final_response",
         }
     )
 
