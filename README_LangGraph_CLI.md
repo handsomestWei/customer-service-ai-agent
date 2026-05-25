@@ -109,7 +109,7 @@ langgraph --help
 - `langgraph.json` - LangGraph CLI 配置文件
 - `.env` - 环境变量文件（包含API密钥）
 - `requirements.txt` - Python 依赖文件
-- `agents/` - 智能体模块目录
+- `multi_agents/` - 智能体模块目录
 - `tools/` - 工具函数模块目录
 
 **环境变量配置示例：**

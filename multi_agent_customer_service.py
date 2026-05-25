@@ -26,7 +26,7 @@ load_dotenv()
 from config import *
 
 # 导入智能体和工具
-from agents import (
+from multi_agents import (
     ProductAgent, TechAgent, BillingAgent,
     ComplaintAgent, GeneralAgent
 )

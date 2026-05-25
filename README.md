@@ -8,8 +8,8 @@
 
 ```
 customer-service-ai-agent/
-├── agents/ # 智能体模块
-│ ├── init.py # 智能体包初始化
+├── multi_agents/ # 智能体模块
+│ ├── __init__.py # 智能体包初始化
 │ ├── base_agent.py # 基础智能体类
 │ ├── product_agent.py # 产品专家智能体
 │ ├── tech_agent.py # 技术支持专家智能体
@@ -17,7 +17,7 @@ customer-service-ai-agent/
 │ ├── complaint_agent.py # 投诉处理专家智能体
 │ └── general_agent.py # 综合客服智能体
 ├── tools/ # 工具函数模块
-│ ├── init.py # 工具包初始化
+│ ├── __init__.py # 工具包初始化
 │ └── query_tools.py # 查询分类工具
 ├── templates/ # Web界面模板
 │ └── index.html # 主页面HTML模板
@@ -161,9 +161,9 @@ python ./web_app.py
 
 ### 添加新的智能体
 
-1. 在`agents/`目录下创建新的智能体文件
+1. 在 `multi_agents/` 目录下创建新的智能体文件
 2. 继承`BaseAgent`类并实现`process`方法
-3. 在`agents/__init__.py`中导入新智能体
+3. 在`multi_agents/__init__.py`中导入新智能体
 4. 在`langgraph.json`中添加节点和边配置
 
 ### 添加新的工具函数
