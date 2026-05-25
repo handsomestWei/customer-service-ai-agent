@@ -18,6 +18,10 @@ FLASK_PORT=5000
 FLASK_DEBUG=False
 FLASK_SECRET_KEY=your-secret-key-here
 
+# LangGraph HTTP API (see chat_web_service.py)
+# LANGGRAPH_API_URL=http://127.0.0.1:2024
+# LANGGRAPH_GRAPH_NAME=customer_service
+
 # ===== Notes =====
 
 # 1. API key

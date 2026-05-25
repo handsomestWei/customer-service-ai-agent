@@ -1,8 +1,27 @@
 # 多智能体客服系统
 
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-%E2%89%A5%201.0-4338CA?style=flat-square)](https://github.com/langchain-ai/langgraph)
+[![Flask](https://img.shields.io/badge/Flask-%E2%89%A5%202.3-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![LangChain](https://img.shields.io/badge/langchain--core-%E2%89%A51.3-121212?style=flat-square)](https://python.langchain.com/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-D22128?style=flat-square)](LICENSE)
+
+*模块化多智能体路由 · Flask Web 前台 · LangGraph 会话编排*
+
 ## 项目概述
 
 这是一个基于LangGraph构建的多智能体客服系统，支持产品咨询、技术支持、账单处理、投诉处理等多种业务场景。系统采用模块化设计，每个智能体独立运行，通过配置文件定义工作流程。
+
+## 运行效果
+
+### 首页
+![首页](./doc/chat-index.jpg)
+
+### 多轮对话
+![多轮对话](./doc/chat-his.jpg)
+
+### 工作流
+![工作流](./doc/chat-graph.jpg)
 
 ## 项目结构
 
@@ -24,7 +43,8 @@ customer-service-ai-agent/
 ├── config.py # 基础配置文件
 ├── multi_agent_customer_service.py # 主程序文件（LangGraph工作流）
 ├── session_manager.py # 会话管理器（LangChain标准接口）
-├── web_app.py # Web应用（Flask + LangGraph API）
+├── web_app.py # Web 入口（Flask 路由与 HTTP 会话）
+├── chat_web_service.py # LangGraph 调用、会话状态解析等业务逻辑
 ├── langgraph.json # LangGraph工作流配置
 ├── requirements.txt # 项目依赖
 ├── .env # 环境变量配置
@@ -102,14 +122,6 @@ python ./web_app.py
 接口文档访问地址默认`http://127.0.0.1:2024/docs`，内嵌了js需要挂梯子。也可参考`https://langchain-ai.github.io/langgraph/cloud/reference/api/api_ref.html`
 
 需要`langgraph dev`启动LangGraph服务。
-
-## 运行效果
-
-### 工作流
-![工作流](./doc/chat-graph.jpg)
-
-### 多轮对话
-![多轮对话](./doc/chat-web.jpg)
 
 ## 工作流程
 
