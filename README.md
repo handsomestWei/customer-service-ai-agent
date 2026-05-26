@@ -1,12 +1,15 @@
-# 多智能体客服系统
+<h1 align="center">多智能体客服系统</h1>
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-%E2%89%A5%201.0-4338CA?style=flat-square)](https://github.com/langchain-ai/langgraph)
-[![Flask](https://img.shields.io/badge/Flask-%E2%89%A5%202.3-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![LangChain](https://img.shields.io/badge/langchain--core-%E2%89%A51.3-121212?style=flat-square)](https://python.langchain.com/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-D22128?style=flat-square)](LICENSE)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-yellow.svg" alt="License Apache 2.0"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg" alt="Python 3.10+"></a>
+  <a href="https://flask.palletsprojects.com/"><img src="https://img.shields.io/badge/Flask-%E2%89%A52.3-339933.svg" alt="Flask"></a>
+  <a href="https://python.langchain.com/"><img src="https://img.shields.io/badge/langchain--core-%E2%89%A51.3-green.svg" alt="langchain-core"></a>
+  <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/LangGraph-%E2%89%A51.0-purple.svg" alt="LangGraph"></a>
+</p>
 
-*模块化多智能体路由 · Flask Web 前台 · LangGraph 会话编排*
+<p align="center"><em>模块化多智能体路由 · Flask Web 前台 · LangGraph 会话编排</em></p>
+
 
 ## 项目概述
 

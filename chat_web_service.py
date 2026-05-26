@@ -381,9 +381,10 @@ def fetch_session_detail(session_id: str) -> Tuple[Optional[Dict[str, Any]], Opt
 
 
 def delete_remote_thread(thread_id: str) -> Tuple[bool, int]:
-    """删除 LangGraph 线程。返回 (是否 2xx, status_code)。"""
-    response = requests.delete(f"{LANGGRAPH_API_URL}/threads/{thread_id}")
-    return response.status_code == 200, response.status_code
+    """删除 LangGraph 线程。成功为任意 2xx（DELETE 常为 204 No Content）。"""
+    response = requests.delete(f"{LANGGRAPH_API_URL}/threads/{thread_id}", timeout=10)
+    ok = 200 <= response.status_code < 300
+    return ok, response.status_code
 
 
 def clear_thread_and_create_new(thread_id: str) -> Tuple[Optional[str], Optional[str]]:

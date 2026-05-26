@@ -251,17 +251,235 @@
         }
 
         .session-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             padding: 10px 10px;
             margin-bottom: 4px;
             background: transparent;
             border-radius: 8px;
             border: none;
-            cursor: pointer;
+            cursor: default;
             transition: background-color 0.12s ease;
             font-size: 0.8125rem;
             line-height: 1.4;
             color: var(--text);
             min-width: 0;
+        }
+
+        .session-item-main {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+            align-self: center;
+        }
+
+        .session-item-actions {
+            position: relative;
+            flex-shrink: 0;
+            align-self: center;
+        }
+
+        .session-item-more-btn {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text-faint, #666);
+            font-size: 1rem;
+            line-height: 1;
+            font-weight: 700;
+            letter-spacing: 0;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.14s ease, background-color 0.12s ease, color 0.12s ease;
+        }
+
+        .session-item:hover .session-item-more-btn,
+        .session-item--menu-open .session-item-more-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 触摸屏无精细悬停：始终可点「⋯」，略淡 */
+        @media (hover: none) {
+            .session-item-more-btn {
+                opacity: 0.55;
+                pointer-events: auto;
+            }
+
+            .session-item--menu-open .session-item-more-btn {
+                opacity: 1;
+            }
+        }
+
+        .session-item-more-btn:hover {
+            background: var(--bg-hover, rgba(0, 0, 0, 0.06));
+            color: var(--text);
+        }
+
+        .session-item-more-btn:focus-visible {
+            outline: 2px solid #333;
+            outline-offset: 1px;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .session-item-menu {
+            display: none;
+            position: fixed;
+            z-index: 400;
+            min-width: 176px;
+            max-width: 240px;
+            padding: 6px 0;
+            margin: 0;
+            list-style: none;
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            box-shadow:
+                0 4px 6px -1px rgba(0, 0, 0, 0.07),
+                0 10px 28px -4px rgba(0, 0, 0, 0.14);
+        }
+
+        .session-item-menu.session-item-menu--open {
+            display: block;
+        }
+
+        .session-item-menu-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .session-item-menu-delete {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.35;
+            color: #d32f2f;
+            text-align: left;
+            transition: background-color 0.12s ease;
+        }
+
+        .session-item-menu-delete:hover {
+            background: rgba(211, 47, 47, 0.08);
+            color: #c62828;
+        }
+
+        .session-item-menu-delete:focus-visible {
+            outline: none;
+            background: rgba(211, 47, 47, 0.12);
+        }
+
+        .session-item-menu-delete svg {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+            stroke: currentColor;
+        }
+
+        .session-item-menu-delete span {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* 删除二次确认弹层 */
+        .session-delete-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .session-delete-modal[hidden] {
+            display: none;
+        }
+
+        .session-delete-modal__backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .session-delete-modal__panel {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 380px;
+            padding: 20px 20px 16px;
+            background: var(--bg-page, #fff);
+            border: 1px solid var(--border, #e5e5e5);
+            border-radius: 12px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+        }
+
+        .session-delete-modal__title {
+            margin: 0 0 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .session-delete-modal__body {
+            margin: 0 0 20px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-muted, #555);
+            word-break: break-word;
+        }
+
+        .session-delete-modal__actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .session-delete-modal__btn {
+            min-width: 88px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: 1px solid var(--border, #ccc);
+            background: var(--bg-page);
+            color: var(--text);
+            transition: background-color 0.12s ease, border-color 0.12s ease;
+        }
+
+        .session-delete-modal__btn:hover {
+            background: var(--bg-hover, #f3f4f6);
+        }
+
+        .session-delete-modal__btn--danger {
+            border-color: #c62828;
+            background: #c62828;
+            color: #fff;
+        }
+
+        .session-delete-modal__btn--danger:hover {
+            background: #b71c1c;
+            border-color: #b71c1c;
         }
 
         .session-item-preview {
@@ -972,8 +1190,8 @@
         <header class="app-header">
             <div class="app-header-brand">
                 <div class="app-header-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -1034,19 +1252,28 @@
 
                         <div class="chat-empty-state" id="chatEmptyState" aria-hidden="false">
                             <div class="chat-empty-inner">
-                                <h2 class="chat-empty-title">你好，我是智能客服助手</h2>
-                                <div class="chat-suggest-list" id="chatSuggestList" role="group"
-                                    aria-label="常见问题推荐">
-                                    <button type="button" class="chat-suggest-pill" data-prompt="默认产品有哪些数据？">默认产品有哪些数据？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="产品价格区间和优惠活动说明">产品价格区间和优惠活动说明</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="如何查询账单与发票？">如何查询账单与发票？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="退款流程需要多久到账？">退款流程需要多久到账？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="遇到登录或报错如何进行技术支持？">遇到登录或报错如何进行技术支持？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="退换货政策和物流时效是怎样的？">退换货政策和物流时效是怎样的？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="我要投诉服务人员，需要提供哪些信息？">我要投诉服务人员，需要提供哪些信息？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="门店营业时间与联系方式">门店营业时间与联系方式</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="会员积分如何获取与兑换？">会员积分如何获取与兑换？</button>
-                                    <button type="button" class="chat-suggest-pill" data-prompt="电子发票什么时候能开好，在哪儿下载？">电子发票什么时候能开好，在哪儿下载？</button>
+                                <h2 class="chat-empty-title">您好，我是智能客服助手</h2>
+                                <div class="chat-suggest-list" id="chatSuggestList" role="group" aria-label="常见问题推荐">
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="有哪些产品推荐？">有哪些产品推荐？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="产品价格区间和优惠活动说明">产品价格区间和优惠活动说明</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="如何查询账单与发票？">如何查询账单与发票？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="退款流程需要多久到账？">退款流程需要多久到账？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="遇到登录或报错如何进行技术支持？">遇到登录或报错如何进行技术支持？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="退换货政策和物流时效是怎样的？">退换货政策和物流时效是怎样的？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="我要投诉服务人员，需要提供哪些信息？">我要投诉服务人员，需要提供哪些信息？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="门店营业时间与联系方式">门店营业时间与联系方式</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="会员积分如何获取与兑换？">会员积分如何获取与兑换？</button>
+                                    <button type="button" class="chat-suggest-pill"
+                                        data-prompt="电子发票什么时候能开好，在哪儿下载？">电子发票什么时候能开好，在哪儿下载？</button>
                                 </div>
                             </div>
                         </div>
@@ -1062,12 +1289,14 @@
                                             <textarea id="messageInput" class="input-composer-field" rows="1"
                                                 placeholder="请输入您的问题..." maxlength="500" autocomplete="off"></textarea>
                                             <div class="input-composer-toolbar">
-                                                <div class="input-composer-hint" id="composerHint">Enter 发送 · Shift+Enter 换行</div>
+                                                <div class="input-composer-hint" id="composerHint">Enter 发送 ·
+                                                    Shift+Enter 换行</div>
                                                 <button type="button" class="input-send-circle" id="sendBtn"
                                                     onclick="sendMessage()" title="发送" aria-label="发送">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                                                        stroke-linejoin="round" aria-hidden="true">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="none" stroke="currentColor" stroke-width="2.2"
+                                                        stroke-linecap="round" stroke-linejoin="round"
+                                                        aria-hidden="true">
                                                         <!-- 竖线箭杆 + 向上三角箭首（常见「上传/发送」语义，非纯折线展开） -->
                                                         <path d="M12 19.5V10" />
                                                         <path d="M7.5 14.5L12 10l4.5 4.5" />
@@ -1087,17 +1316,32 @@
         </div>
     </div>
 
+    <!-- 会话删除二次确认 -->
+    <div id="sessionDeleteModal" class="session-delete-modal" role="dialog" aria-modal="true"
+        aria-labelledby="sessionDeleteModalTitle" hidden>
+        <div class="session-delete-modal__backdrop"></div>
+        <div class="session-delete-modal__panel">
+            <h2 id="sessionDeleteModalTitle" class="session-delete-modal__title">删除会话</h2>
+            <p id="sessionDeleteModalBody" class="session-delete-modal__body"></p>
+            <div class="session-delete-modal__actions">
+                <button type="button" class="session-delete-modal__btn" id="sessionDeleteModalCancel">取消</button>
+                <button type="button" class="session-delete-modal__btn session-delete-modal__btn--danger"
+                    id="sessionDeleteModalConfirm">删除</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Markdown 与安全渲染：CDN 失败时由内联脚本回退为直接 innerHTML 展示 -->
-    <script crossorigin="anonymous"
-        src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"
         onerror="window.__MarkdownLibLoadFailed = true;"></script>
-    <script crossorigin="anonymous"
-        src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"
         onerror="window.__MarkdownLibLoadFailed = true;"></script>
 
     <script>
         let currentSessionId = null;
         let isTyping = false;
+        /** 删除确认弹窗：{ sessionId, previewTitle } */
+        let pendingDeleteSessionPayload = null;
 
         function pad2(n) {
             return String(n).padStart(2, '0');
@@ -1292,6 +1536,7 @@
                 ta.focus();
             }
             initSuggestPrompts();
+            initSessionSidebarActions();
             refreshSessionList();
             createNewSession();
             updateComposerSendReady();
@@ -1315,6 +1560,113 @@
                 ta.focus();
                 autoGrowMessageInput();
                 updateComposerSendReady();
+            });
+        }
+
+        /** 关闭侧边栏所有会话下拉菜单 */
+        function closeAllSessionItemMenus() {
+            document.querySelectorAll('.session-item--menu-open').forEach(function (item) {
+                item.classList.remove('session-item--menu-open');
+                const btnEl = item.querySelector('.session-item-more-btn');
+                if (btnEl) btnEl.setAttribute('aria-expanded', 'false');
+                const menu = item.querySelector('.session-item-menu');
+                if (menu) {
+                    menu.classList.remove('session-item-menu--open');
+                    menu.style.top = '';
+                    menu.style.left = '';
+                }
+            });
+        }
+
+        /** 「⋯」下挂菜单锚定到视口（避免会话列表滚动区域裁切） */
+        function positionSessionItemMenu(triggerEl, menuEl) {
+            menuEl.classList.add('session-item-menu--open');
+            menuEl.style.left = '-9999px';
+            menuEl.style.top = '0';
+            menuEl.offsetWidth;
+
+            requestAnimationFrame(function () {
+                const rect = triggerEl.getBoundingClientRect();
+                let mw = menuEl.offsetWidth;
+                let mh = menuEl.offsetHeight;
+                if (mw < 4) mw = 176;
+
+                let topPx = rect.bottom + 4;
+                if (topPx + mh > window.innerHeight - 8) {
+                    topPx = Math.max(8, rect.top - mh - 4);
+                }
+                /** 菜单在「⋯」按钮右侧展开（与右边缘对齐优先），空间不足时再向左避让 */
+                const gap = 4;
+                let leftPx = rect.right + gap;
+                if (leftPx + mw > window.innerWidth - 8) {
+                    leftPx = rect.right - mw;
+                }
+                if (leftPx < 8) {
+                    leftPx = 8;
+                }
+                menuEl.style.left = leftPx + 'px';
+                menuEl.style.top = topPx + 'px';
+            });
+        }
+
+        /** 删除确认弹窗 */
+        function hideSessionDeleteModal() {
+            pendingDeleteSessionPayload = null;
+            const modal = document.getElementById('sessionDeleteModal');
+            if (modal) modal.setAttribute('hidden', '');
+        }
+
+        function openSessionDeleteConfirmModal(sessionId, previewTitle) {
+            closeAllSessionItemMenus();
+            pendingDeleteSessionPayload = { sessionId: sessionId, previewTitle: previewTitle };
+            const modal = document.getElementById('sessionDeleteModal');
+            const bodyEl = document.getElementById('sessionDeleteModalBody');
+            if (!modal || !bodyEl) return;
+            bodyEl.textContent = '删除后，这条对话记录将无法找回。确定删除此对话？';
+            modal.removeAttribute('hidden');
+            const modalCancelBtn = document.getElementById('sessionDeleteModalCancel');
+            if (modalCancelBtn) modalCancelBtn.focus();
+        }
+
+        let sessionSidebarActionsInited = false;
+
+        function initSessionSidebarActions() {
+            if (sessionSidebarActionsInited) return;
+            sessionSidebarActionsInited = true;
+
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.session-item-actions')) return;
+                closeAllSessionItemMenus();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                const modal = document.getElementById('sessionDeleteModal');
+                if (modal && !modal.hasAttribute('hidden')) {
+                    hideSessionDeleteModal();
+                    e.preventDefault();
+                    return;
+                }
+                closeAllSessionItemMenus();
+            });
+
+            const modal = document.getElementById('sessionDeleteModal');
+            const backdrop = modal && modal.querySelector('.session-delete-modal__backdrop');
+            const cancelBtn = document.getElementById('sessionDeleteModalCancel');
+            const confirmBtn = document.getElementById('sessionDeleteModalConfirm');
+            if (!modal || !backdrop || !cancelBtn || !confirmBtn) return;
+
+            backdrop.addEventListener('click', hideSessionDeleteModal);
+            cancelBtn.addEventListener('click', hideSessionDeleteModal);
+
+            confirmBtn.addEventListener('click', async function () {
+                if (!pendingDeleteSessionPayload) {
+                    hideSessionDeleteModal();
+                    return;
+                }
+                const sid = pendingDeleteSessionPayload.sessionId;
+                hideSessionDeleteModal();
+                await executeSessionDelete(sid);
             });
         }
 
@@ -1352,6 +1704,35 @@
             }
         }
 
+        /** 执行删除（无确认；确认由弹窗完成） */
+        async function executeSessionDelete(sessionId) {
+            try {
+                const response = await fetch(
+                    '/api/sessions/' + encodeURIComponent(sessionId),
+                    { method: 'DELETE' }
+                );
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (_ignore) { }
+                if (!response.ok) {
+                    const msg =
+                        typeof data.error === 'string'
+                            ? data.error
+                            : 'HTTP ' + response.status + ' ' + response.statusText;
+                    addSystemMessage('删除会话失败: ' + msg);
+                    return;
+                }
+                if (sessionId === currentSessionId) {
+                    createNewSession();
+                } else {
+                    await refreshSessionList();
+                }
+            } catch (e) {
+                addSystemMessage('删除会话失败: ' + e.message);
+            }
+        }
+
         // 显示会话列表
         function displaySessionList(sessions) {
             const sessionList = document.getElementById('sessionList');
@@ -1382,10 +1763,69 @@
                     + ' | 创建: '
                     + formatSessionCreatedAt(session.created_at);
 
-                sessionItem.appendChild(previewEl);
-                sessionItem.appendChild(metaEl);
+                const mainEl = document.createElement('div');
+                mainEl.className = 'session-item-main';
+                mainEl.appendChild(previewEl);
+                mainEl.appendChild(metaEl);
+                mainEl.onclick = () => loadSession(session.session_id);
 
-                sessionItem.onclick = () => loadSession(session.session_id);
+                const actionsWrap = document.createElement('div');
+                actionsWrap.className = 'session-item-actions';
+
+                const moreBtn = document.createElement('button');
+                moreBtn.type = 'button';
+                moreBtn.className = 'session-item-more-btn';
+                moreBtn.setAttribute('aria-label', '更多操作');
+                moreBtn.setAttribute('aria-expanded', 'false');
+                moreBtn.setAttribute('aria-haspopup', 'true');
+                moreBtn.title = '更多';
+                moreBtn.textContent = '...';
+
+                const menuEl = document.createElement('div');
+                menuEl.className = 'session-item-menu';
+
+                const menuList = document.createElement('ul');
+                menuList.className = 'session-item-menu-list';
+
+                menuEl.appendChild(menuList);
+
+                const menuLi = document.createElement('li');
+                menuLi.setAttribute('role', 'none');
+
+                const delMenuItem = document.createElement('button');
+                delMenuItem.type = 'button';
+                delMenuItem.className = 'session-item-menu-delete';
+                delMenuItem.setAttribute('role', 'menuitem');
+                delMenuItem.setAttribute('aria-label', '删除此对话');
+                delMenuItem.innerHTML =
+                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
+                    + '<span>删除此对话</span>';
+
+                menuLi.appendChild(delMenuItem);
+                menuList.appendChild(menuLi);
+
+                menuList.setAttribute('role', 'menu');
+
+                moreBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    const wasOpen = sessionItem.classList.contains('session-item--menu-open');
+                    closeAllSessionItemMenus();
+                    if (wasOpen) return;
+                    sessionItem.classList.add('session-item--menu-open');
+                    moreBtn.setAttribute('aria-expanded', 'true');
+                    positionSessionItemMenu(actionsWrap, menuEl);
+                };
+
+                delMenuItem.onclick = function (ev) {
+                    ev.stopPropagation();
+                    openSessionDeleteConfirmModal(session.session_id, titleText);
+                };
+
+                actionsWrap.appendChild(moreBtn);
+                actionsWrap.appendChild(menuEl);
+
+                sessionItem.appendChild(mainEl);
+                sessionItem.appendChild(actionsWrap);
                 sessionList.appendChild(sessionItem);
             });
         }
