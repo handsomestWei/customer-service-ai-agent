@@ -5,8 +5,15 @@
 """
 
 import os
+import sys
 import time
 from typing import Dict, Any, List
+
+# Windows 控制台默认 GBK 无法打印 emoji，统一切换为 UTF-8，避免 UnicodeEncodeError
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if sys.stderr and hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from dotenv import load_dotenv
 

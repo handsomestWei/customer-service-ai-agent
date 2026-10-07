@@ -17,6 +17,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- 禁用系统代理访问本地 LangGraph 服务 ---
+# 本机 HTTP_PROXY/HTTPS_PROXY + WinINET 注册表代理均指向 127.0.0.1:7890，
+# requests 会因此把访问 127.0.0.1:2024 的本地请求也转发到代理，导致 ReadTimeout。
+# 环境变量 NO_PROXY 无法覆盖注册表代理，故在此 monkey-patch requests 所有请求强制禁用代理。
+_orig_requests_request = requests.api.request
+
+
+def _no_proxy_request(method, url, **kwargs):
+    kwargs.setdefault("proxies", {"http": None, "https": None})
+    return _orig_requests_request(method, url, **kwargs)
+
+
+# requests.get/post/delete 便捷方法内部都会调用 requests.api.request，故仅 patch 这一处即可全部生效。
+requests.api.request = _no_proxy_request
+requests.request = _no_proxy_request
+
 # -----------------------------------------------------------------------------
 # 配置（可被环境变量覆盖）
 # -----------------------------------------------------------------------------
@@ -459,7 +475,8 @@ def run_chat_sync(user_message: str, client_session_id: Optional[str] = None) ->
         run_id = result["run_id"]
 
         run_status = "running"
-        max_wait_time = 120
+        # 匹配 LLM 超时 (HTTP_TIMEOUT=150s)，留足图内生成长回答的等待余量
+        max_wait_time = 180
         wait_start = time.time()
 
         while run_status in ["running", "pending"]:

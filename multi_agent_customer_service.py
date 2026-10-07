@@ -6,14 +6,34 @@
 """
 
 import os
+import sys
 import json
 import requests
 import time
 from typing import Dict, List, Any, Optional, TypedDict, Annotated
 from datetime import datetime
+
+# Windows 控制台默认 GBK 无法打印 emoji，统一切换为 UTF-8，避免 UnicodeEncodeError
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if sys.stderr and hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+# 禁用系统代理：本机 HTTP_PROXY/WinINET 代理 (127.0.0.1:7890) 转发外部/本地请求易超时，
+# LLM 调用（SiliconFlow）与本地 LangGraph 服务都应直连。
+_orig_req_request = requests.api.request
+
+
+def _no_proxy_request(method, url, **kwargs):
+    kwargs.setdefault("proxies", {"http": None, "https": None})
+    return _orig_req_request(method, url, **kwargs)
+
+
+requests.api.request = _no_proxy_request
+requests.request = _no_proxy_request
+
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from langchain_core.chat_history import BaseChatMessageHistory
 from langgraph.graph import StateGraph
 from langgraph.config import get_config
 from langchain_core.tools import tool
@@ -52,7 +72,8 @@ class AgentState(TypedDict):
     tools_used: List[str]
     next_agent: str
     conversation_history: List[Any]
-    memory: Optional[BaseChatMessageHistory]
+    # 运行时内存会话对象，仅内部使用（pydantic 生成 schema 用 Any 避免警告）
+    memory: Optional[Any]
     # 由图 checkpointer 持久化，跨 LangGraph 工作进程仍可续聊（内存 session_manager 无法做到）
     persisted_dialogue: List[Any]
 
